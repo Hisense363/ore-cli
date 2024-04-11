@@ -103,7 +103,7 @@ impl Miner {
             nonce_manager.try_init_all(&signer).await; 
 
         // Return error if balance is zero
-        let balance = client.get_balance_with_commitment(&signer.pubkey(), CommitmentConfig::finalized())
+        let balance = client.get_balance_with_commitment(&signer.pubkey(), CommitmentConfig::finalized());
         if balance <= 0 {
             return Err(ClientError {
                 request: None,
