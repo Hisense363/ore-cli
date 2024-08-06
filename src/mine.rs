@@ -49,7 +49,7 @@ impl Miner {
                 proof,
                 cutoff_time,
                 args.threads,
-                config.min_difficulty as u32,
+                args.min_difficulty,
             )
             .await;
 
@@ -101,7 +101,7 @@ impl Miner {
                                 &nonce.to_le_bytes(),
                             ) {
                                 let difficulty = hx.difficulty();
-                                if difficulty.gt(&best_difficulty) {
+                                if difficulty >= min_difficulty && difficulty > best_difficulty {
                                     best_nonce = nonce;
                                     best_difficulty = difficulty;
                                     best_hash = hx;
@@ -109,18 +109,16 @@ impl Miner {
                             }
 
                             // Exit if time has elapsed
-                            if nonce % 100 == 0 {
-                                if timer.elapsed().as_secs().ge(&cutoff_time) {
-                                    if best_difficulty.gt(&min_difficulty) {
-                                        // Mine until min difficulty has been met
-                                        break;
-                                    }
-                                } else if i == 0 {
-                                    progress_bar.set_message(format!(
-                                        "Mining... ({} sec remaining)",
-                                        cutoff_time.saturating_sub(timer.elapsed().as_secs()),
-                                    ));
+                            if timer.elapsed().as_secs().ge(&cutoff_time) {
+                                if best_difficulty >= min_difficulty {
+                                 // Only break if we've found a hash meeting the min difficulty
+                                     break;
                                 }
+                            } else if i == 0 {
+                                progress_bar.set_message(format!(
+                                    "Mining... ({} sec remaining)",
+                                    cutoff_time.saturating_sub(timer.elapsed().as_secs()),
+                                ));
                             }
 
                             // Increment nonce
